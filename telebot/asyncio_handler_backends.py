@@ -80,10 +80,10 @@ class StateFile:
         states_data = self._read_data()
         if chat_id in states_data:
             states_data[chat_id]['state'] = state
-            return await self._save_data(states_data)
         else:
             new_data = states_data[chat_id] = {'state': state,'data': {}}
-            return await self._save_data(states_data)
+
+        return await self._save_data(states_data)
 
 
     async def current_state(self, chat_id):
@@ -102,9 +102,8 @@ class StateFile:
         """
         Read the data from file.
         """
-        file = open(self.file_path, 'rb')
-        states_data = pickle.load(file)
-        file.close()
+        with open(self.file_path, 'rb') as file:
+            states_data = pickle.load(file)
         return states_data
 
     def _create_dir(self):

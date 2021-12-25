@@ -53,10 +53,10 @@ class webhook_serv(tornado.web.RequestHandler):
             update = telebot.types.Update.de_json(json_data)
             bot.process_new_updates([update])
             self.write("")
-            self.finish()
         else:
             self.write("What are you doing here?")
-            self.finish()
+
+        self.finish()
 
 
 tornado.options.define("port", default=WEBHOOK_PORT, help="run on the given port", type=int)
