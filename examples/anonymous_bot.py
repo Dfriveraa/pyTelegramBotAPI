@@ -47,7 +47,7 @@ def find(message: types.Message):
     if message.chat.id not in users:
         bot.send_message(message.chat.id, 'Finding...')
 
-        if freeid == None:
+        if freeid is None:
             freeid = message.chat.id
         else:
             # Question:

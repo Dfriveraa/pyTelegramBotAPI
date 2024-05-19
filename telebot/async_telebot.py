@@ -305,7 +305,7 @@ class AsyncTeleBot:
         try:
             while self._polling:
                 try:
-                    
+
                     updates = await self.get_updates(offset=self.offset, allowed_updates=allowed_updates, timeout=timeout, request_timeout=request_timeout)
                     if updates:
                         self.offset = updates[-1].update_id + 1
@@ -334,13 +334,12 @@ class AsyncTeleBot:
                         break
                 except Exception as e:
                     logger.error('Cause exception while getting updates.')
-                    if non_stop:
-                        logger.error(str(e))
-                        await asyncio.sleep(3)
-                        continue
-                    else:
+                    if not non_stop:
                         raise e     
 
+                    logger.error(str(e))
+                    await asyncio.sleep(3)
+                    continue
         finally:
             self._polling = False
             logger.warning('Polling is stopped.')
@@ -368,28 +367,27 @@ class AsyncTeleBot:
             process_update = await self._test_message_handler(message_handler, message)
             if not process_update:
                 continue
-            elif process_update:
-                if middleware:
-                    middleware_result = await middleware.pre_process(message, data)
-                    if isinstance(middleware_result, SkipHandler):
-                        await middleware.post_process(message, data, handler_error)
-                        break
-                    if isinstance(middleware_result, CancelUpdate):
-                        return
-                try:
-                    if "data" in signature(message_handler['function']).parameters:
-                        await message_handler['function'](message, data)
-                    else:
-                        await message_handler['function'](message)
-                        break
-                except Exception as e:
-                    handler_error = e
+            if middleware:
+                middleware_result = await middleware.pre_process(message, data)
+                if isinstance(middleware_result, SkipHandler):
+                    await middleware.post_process(message, data, handler_error)
+                    break
+                if isinstance(middleware_result, CancelUpdate):
+                    return
+            try:
+                if "data" in signature(message_handler['function']).parameters:
+                    await message_handler['function'](message, data)
+                else:
+                    await message_handler['function'](message)
+                    break
+            except Exception as e:
+                handler_error = e
 
-                    if not middleware:
-                        if self.exception_handler:
-                            return self.exception_handler.handle(e)
-                        logging.error(str(e))
-                        return
+                if not middleware:
+                    if self.exception_handler:
+                        return self.exception_handler.handle(e)
+                    logging.error(str(e))
+                    return
 
         if middleware:
             await middleware.post_process(message, data, handler_error)

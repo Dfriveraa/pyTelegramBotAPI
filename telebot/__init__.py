@@ -432,7 +432,7 @@ class TeleBot:
         new_my_chat_members = None
         new_chat_members = None
         chat_join_request = None
-        
+
         for update in updates:
             if apihelper.ENABLE_MIDDLEWARE:
                 try:
@@ -441,10 +441,9 @@ class TeleBot:
                     logger.error(str(e))
                     if not self.suppress_middleware_excepions:
                         raise
-                    else:
-                        if update.update_id > self.last_update_id: self.last_update_id = update.update_id
-                        continue
-                    
+                    if update.update_id > self.last_update_id: self.last_update_id = update.update_id
+                    continue
+
             if update.update_id > self.last_update_id:
                 self.last_update_id = update.update_id
             if update.message:
@@ -700,7 +699,7 @@ class TeleBot:
                         # self.worker_pool.clear_exceptions()
                         logger.info("Waiting for {0} seconds until retry".format(error_interval))
                         time.sleep(error_interval)
-                        if error_interval * 2 < 60:
+                        if error_interval < 30:
                             error_interval *= 2
                         else:
                             error_interval = 60
@@ -866,8 +865,7 @@ class TeleBot:
         :param chat_id:
         :return:
         """
-        result = apihelper.leave_chat(self.token, chat_id)
-        return result
+        return apihelper.leave_chat(self.token, chat_id)
 
     def get_chat_administrators(self, chat_id: Union[int, str]) -> List[types.ChatMember]:
         """
@@ -886,8 +884,7 @@ class TeleBot:
         This function is deprecated. Use `get_chat_member_count` instead
         """
         logger.info('get_chat_members_count is deprecated. Use get_chat_member_count instead.')
-        result = apihelper.get_chat_member_count(self.token, chat_id)
-        return result
+        return apihelper.get_chat_member_count(self.token, chat_id)
     
     def get_chat_member_count(self, chat_id: Union[int, str]) -> int:
         """
@@ -895,8 +892,7 @@ class TeleBot:
         :param chat_id:
         :return:
         """
-        result = apihelper.get_chat_member_count(self.token, chat_id)
-        return result
+        return apihelper.get_chat_member_count(self.token, chat_id)
 
     def set_chat_sticker_set(self, chat_id: Union[int, str], sticker_set_name: str) -> types.StickerSet:
         """
@@ -909,8 +905,7 @@ class TeleBot:
         :param sticker_set_name: Name of the sticker set to be set as the group sticker set
         :return:
         """
-        result = apihelper.set_chat_sticker_set(self.token, chat_id, sticker_set_name)
-        return result
+        return apihelper.set_chat_sticker_set(self.token, chat_id, sticker_set_name)
 
     def delete_chat_sticker_set(self, chat_id: Union[int, str]) -> bool:
         """
@@ -921,8 +916,7 @@ class TeleBot:
         (in the format @supergroupusername)
         :return:
         """
-        result = apihelper.delete_chat_sticker_set(self.token, chat_id)
-        return result
+        return apihelper.delete_chat_sticker_set(self.token, chat_id)
 
     def get_chat_member(self, chat_id: Union[int, str], user_id: int) -> types.ChatMember:
         """

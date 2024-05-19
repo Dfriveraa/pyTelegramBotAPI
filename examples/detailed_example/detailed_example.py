@@ -31,11 +31,10 @@ hideBoard = types.ReplyKeyboardRemove()  # if sent as reply_markup, will hide th
 def get_user_step(uid):
     if uid in userStep:
         return userStep[uid]
-    else:
-        knownUsers.append(uid)
-        userStep[uid] = 0
-        print("New user detected, who hasn't used \"/start\" yet")
-        return 0
+    knownUsers.append(uid)
+    userStep[uid] = 0
+    print("New user detected, who hasn't used \"/start\" yet")
+    return 0
 
 
 # only used for console output now

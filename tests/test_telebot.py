@@ -458,7 +458,7 @@ class TestTeleBot:
     def test_antiflood(self):
         text = "Flooding"
         tb = telebot.TeleBot(TOKEN)
-        for _ in range(0,100):
+        for _ in range(100):
             util.antiflood(tb.send_message, CHAT_ID, text)
         assert _
 

@@ -124,10 +124,8 @@ class RedisHandlerBackend(HandlerBackend):
         return ':'.join((self.prefix, str(handle_group_id)))
 
     def register_handler(self, handler_group_id, handler):
-        handlers = []
         value = self.redis.get(self._key(handler_group_id))
-        if value:
-            handlers = pickle.loads(value)
+        handlers = pickle.loads(value) if value else []
         handlers.append(handler)
         self.redis.set(self._key(handler_group_id), pickle.dumps(handlers))
 
@@ -220,10 +218,10 @@ class StateFile:
         states_data = self._read_data()
         if chat_id in states_data:
             states_data[chat_id]['state'] = state
-            return self._save_data(states_data)
         else:
             new_data = states_data[chat_id] = {'state': state,'data': {}}
-            return self._save_data(states_data)
+
+        return self._save_data(states_data)
 
 
     def current_state(self, chat_id):
@@ -242,9 +240,8 @@ class StateFile:
         """
         Read the data from file.
         """
-        file = open(self.file_path, 'rb')
-        states_data = pickle.load(file)
-        file.close()
+        with open(self.file_path, 'rb') as file:
+            states_data = pickle.load(file)
         return states_data
 
     def _create_dir(self):

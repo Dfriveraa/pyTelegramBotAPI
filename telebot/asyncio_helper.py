@@ -156,12 +156,8 @@ async def download_file(token, file_path):
 async def set_webhook(token, url=None, certificate=None, max_connections=None, allowed_updates=None, ip_address=None,
                 drop_pending_updates = None, timeout=None):
     method_url = r'setWebhook'
-    payload = {
-        'url': url if url else "",
-    }
-    files = None
-    if certificate:
-        files = {'certificate': certificate}
+    payload = {'url': url or ""}
+    files = {'certificate': certificate} if certificate else None
     if max_connections:
         payload['max_connections'] = max_connections
     if allowed_updates is not None:       # Empty lists should pass
@@ -448,9 +444,12 @@ async def send_media_group(
     if allow_sending_without_reply is not None:
         payload['allow_sending_without_reply'] = allow_sending_without_reply
     return await _process_request(
-        token, method_url, params=payload,
+        token,
+        method_url,
+        params=payload,
         method='post' if files else 'get',
-        files=files if files else None)
+        files=files or None,
+    )
 
 
 async def send_location(
@@ -612,13 +611,12 @@ async def send_video(token, chat_id, data, duration=None, caption=None, reply_to
     if timeout:
         payload['timeout'] = timeout
     if thumb:
-        if not util.is_string(thumb):
-            if files:
-                files['thumb'] = thumb
-            else:
-                files = {'thumb': thumb}
-        else:
+        if util.is_string(thumb):
             payload['thumb'] = thumb
+        elif files:
+            files['thumb'] = thumb
+        else:
+            files = {'thumb': thumb}
     if width:
         payload['width'] = width
     if height:
@@ -656,13 +654,12 @@ async def send_animation(
     if timeout:
         payload['timeout'] = timeout
     if thumb:
-        if not util.is_string(thumb):
-            if files:
-                files['thumb'] = thumb
-            else:
-                files = {'thumb': thumb}
-        else:
+        if util.is_string(thumb):
             payload['thumb'] = thumb
+        elif files:
+            files['thumb'] = thumb
+        else:
+            files = {'thumb': thumb}
     if caption_entities:
         payload['caption_entities'] = json.dumps(types.MessageEntity.to_list_of_dicts(caption_entities))
     if allow_sending_without_reply is not None:
@@ -725,13 +722,12 @@ async def send_video_note(token, chat_id, data, duration=None, length=None, repl
     if timeout:
         payload['timeout'] = timeout
     if thumb:
-        if not util.is_string(thumb):
-            if files:
-                files['thumb'] = thumb
-            else:
-                files = {'thumb': thumb}
-        else:
+        if util.is_string(thumb):
             payload['thumb'] = thumb
+        elif files:
+            files['thumb'] = thumb
+        else:
+            files = {'thumb': thumb}
     if allow_sending_without_reply is not None:
         payload['allow_sending_without_reply'] = allow_sending_without_reply
     return await _process_request(token, method_url, params=payload, files=files, method='post')
@@ -766,13 +762,12 @@ async def send_audio(token, chat_id, audio, caption=None, duration=None, perform
     if timeout:
         payload['timeout'] = timeout
     if thumb:
-        if not util.is_string(thumb):
-            if files:
-                files['thumb'] = thumb
-            else:
-                files = {'thumb': thumb}
-        else:
+        if util.is_string(thumb):
             payload['thumb'] = thumb
+        elif files:
+            files['thumb'] = thumb
+        else:
+            files = {'thumb': thumb}
     if caption_entities:
         payload['caption_entities'] = json.dumps(types.MessageEntity.to_list_of_dicts(caption_entities))
     if allow_sending_without_reply is not None:
@@ -806,13 +801,12 @@ async def send_data(token, chat_id, data, data_type, reply_to_message_id=None, r
     if caption:
         payload['caption'] = caption
     if thumb:
-        if not util.is_string(thumb):
-            if files:
-                files['thumb'] = thumb
-            else:
-                files = {'thumb': thumb}
-        else:
+        if util.is_string(thumb):
             payload['thumb'] = thumb
+        elif files:
+            files['thumb'] = thumb
+        else:
+            files = {'thumb': thumb}
     if caption_entities:
         payload['caption_entities'] = json.dumps(types.MessageEntity.to_list_of_dicts(caption_entities))
     if allow_sending_without_reply is not None:
@@ -831,11 +825,14 @@ async def get_method_by_type(data_type):
 
 async def ban_chat_member(token, chat_id, user_id, until_date=None, revoke_messages=None):
     method_url = 'banChatMember'
-    payload = {'chat_id': chat_id, 'user_id': user_id}
-    if isinstance(until_date, datetime):
-        payload['until_date'] = until_date.timestamp()
-    else:
-        payload['until_date'] = until_date
+    payload = {
+        'chat_id': chat_id,
+        'user_id': user_id,
+        'until_date': until_date.timestamp()
+        if isinstance(until_date, datetime)
+        else until_date,
+    }
+
     if revoke_messages is not None:
         payload['revoke_messages'] = revoke_messages
     return await _process_request(token, method_url, params=payload, method='post')
@@ -1539,7 +1536,7 @@ async def _convert_list_json_serializable(results):
     for r in results:
         if isinstance(r, types.JsonSerializable):
             ret = ret + r.to_json() + ','
-    if len(ret) > 0:
+    if ret != '':
         ret = ret[:-1]
     return '[' + ret + ']'
 
@@ -1561,13 +1558,13 @@ async def _convert_poll_options(poll_options):
         return None
     elif len(poll_options) == 0:
         return []
-    elif isinstance(poll_options[0], str):
+    elif isinstance(poll_options[0], str) or not isinstance(
+        poll_options[0], types.PollOption
+    ):
         # Compatibility mode with previous bug when only list of string was accepted as poll_options
         return poll_options
-    elif isinstance(poll_options[0], types.PollOption):
-        return [option.text for option in poll_options]
     else:
-        return poll_options
+        return [option.text for option in poll_options]
 
 
 async def convert_input_media(media):

@@ -35,7 +35,7 @@ async def name_get(message):
     """
     State 1. Will process when user's state is 1.
     """
-    await bot.send_message(message.chat.id, f'Now write me a surname')
+    await bot.send_message(message.chat.id, 'Now write me a surname')
     await bot.set_state(message.from_user.id, MyStates.surname)
     async with bot.retrieve_data(message.from_user.id) as data:
         data['name'] = message.text
